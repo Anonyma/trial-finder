@@ -12,7 +12,10 @@
     "db:studio": "drizzle-kit studio",
     "ingest": "tsx scripts/run-ingest.ts",
     "ingest:full": "tsx scripts/run-ingest.ts --full",
-    "ingest:classify": "tsx scripts/run-classify.ts"
+    "ingest:limit": "tsx scripts/run-ingest.ts --limit=100",
+    "ingest:classify": "tsx scripts/run-classify.ts",
+    "ingest:classify-cheap": "tsx scripts/run-classify-cheap.ts",
+    "ingest:classify-cheap-ollama": "tsx scripts/run-classify-cheap.ts --ollama"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

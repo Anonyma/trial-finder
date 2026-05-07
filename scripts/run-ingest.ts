@@ -30,6 +30,10 @@ const SOURCES = [
 const args = new Set(process.argv.slice(2));
 const FULL = args.has("--full");
 
+// Support --limit=N for testing with small datasets
+const limitArg = [...args].find(a => a.startsWith("--limit="));
+const INGEST_LIMIT = limitArg ? parseInt(limitArg.split("=")[1], 10) : Infinity;
+
 function dateNDaysAgo(n: number): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() - n);
@@ -116,13 +120,24 @@ async function runSource(source: (typeof SOURCES)[number]): Promise<void> {
       full: FULL,
       updatedSince,
       onPage: async (batch, pageNum) => {
-        trialsSeen += batch.length;
-        const { inserted, updated } = await upsertTrials(batch);
+        // Respect the limit for testing
+        const remaining = INGEST_LIMIT - trialsInserted;
+        if (remaining <= 0) return;
+        
+        const toInsert = batch.slice(0, remaining);
+        trialsSeen += toInsert.length;
+        const { inserted, updated } = await upsertTrials(toInsert);
         trialsInserted += inserted;
         trialsUpdated += updated;
         console.log(
-          `[${source.name}] page ${pageNum}: +${batch.length} oncology trials (running total ${trialsInserted})`
+          `[${source.name}] page ${pageNum}: +${toInsert.length} oncology trials (running total ${trialsInserted}${INGEST_LIMIT < Infinity ? "/" + INGEST_LIMIT : ""})`
         );
+        
+        // Stop if we've hit the limit
+        if (trialsInserted >= INGEST_LIMIT) {
+          console.log(`[${source.name}] Reached limit of ${INGEST_LIMIT}, stopping`);
+          throw new Error("LIMIT_REACHED");
+        }
       },
     });
 
@@ -143,6 +158,24 @@ async function runSource(source: (typeof SOURCES)[number]): Promise<void> {
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    
+    // Handle limit reached as success, not failure
+    if (message === "LIMIT_REACHED") {
+      await db
+        .update(ingestionRuns)
+        .set({
+          status: "succeeded",
+          completedAt: new Date(),
+          trialsSeen,
+          trialsInserted,
+          trialsUpdated,
+          metadata: { note: `Stopped at limit of ${INGEST_LIMIT} trials` },
+        })
+        .where(sql`${ingestionRuns.id} = ${run.id}`);
+      console.log(`[${source.name}] STOPPED at ${INGEST_LIMIT} trial limit`);
+      return;
+    }
+    
     console.error(`[${source.name}] FAILED: ${message}`);
     await db
       .update(ingestionRuns)
