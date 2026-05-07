@@ -1,0 +1,56 @@
+name: Daily trial ingestion
+
+on:
+  schedule:
+    # Daily at 06:00 UTC (~11:30 AM IST, off-peak for ClinicalTrials.gov)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        default: "incremental"
+        type: choice
+        options:
+          - incremental
+          - full
+
+jobs:
+  ingest:
+    name: Ingest + classify trials
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ingestion
+        run: |
+          if [[ "${{ github.event.inputs.mode }}" == "full" ]]; then
+            npm run ingest:full
+          else
+            npm run ingest
+          fi
+
+      - name: Run classification
+        run: npm run ingest:classify
+        env:
+          MAX_CLASSIFY_PER_RUN: "1500"
+
+      - name: Job summary
+        if: always()
+        run: |
+          echo "## Daily ingestion complete" >> $GITHUB_STEP_SUMMARY
+          echo "Run at $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY

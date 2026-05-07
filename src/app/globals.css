@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #faf8f3;
+    color: #1a1814;
+    font-family: var(--font-geist), system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: #1a1814;
+  }
+
+  /* Subtle texture on the paper background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(26, 24, 20, 0.025) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+    z-index: 0;
+  }
+
+  ::selection {
+    background-color: rgba(168, 58, 26, 0.18);
+    color: #1a1814;
+  }
+}
+
+@layer components {
+  /* The serif "wordmark" used in the header */
+  .wordmark {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    font-variation-settings: "opsz" 144;
+  }
+
+  /* Underline-on-hover link style for editorial body links */
+  .link-editorial {
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(26, 24, 20, 0.3);
+    transition: text-decoration-color 150ms ease;
+  }
+  .link-editorial:hover {
+    text-decoration-color: #a83a1a;
+    color: #a83a1a;
+  }
+
+  /* Status pip — small dot + label */
+  .status-pip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .status-pip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Trial card hover affordance */
+  .trial-card {
+    background: #ffffff;
+    border: 1px solid #e8e2d4;
+    transition: border-color 150ms ease, transform 150ms ease;
+  }
+  .trial-card:hover {
+    border-color: #1a1814;
+  }
+
+  /* Tag/chip */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #d4ccba;
+    border-radius: 2px;
+    background: #faf8f3;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #4a4540;
+    white-space: nowrap;
+  }
+  .chip-accent {
+    border-color: #a83a1a;
+    color: #a83a1a;
+    background: #f4e8e1;
+  }
+}
+
+/* Form elements get a refined editorial look */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  background: #ffffff;
+  border: 1px solid #d4ccba;
+  border-radius: 2px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.95rem;
+  color: #1a1814;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #1a1814;
+  box-shadow: 0 0 0 3px rgba(168, 58, 26, 0.12);
+}
