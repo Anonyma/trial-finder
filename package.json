@@ -15,7 +15,9 @@
     "ingest:limit": "tsx scripts/run-ingest.ts --limit=100",
     "ingest:classify": "tsx scripts/run-classify.ts",
     "ingest:classify-cheap": "tsx scripts/run-classify-cheap.ts",
-    "ingest:classify-cheap-ollama": "tsx scripts/run-classify-cheap.ts --ollama"
+    "ingest:classify-cheap-ollama": "tsx scripts/run-classify-cheap.ts --ollama",
+    "ingest:classify-unified": "tsx scripts/run-classify-unified.ts",
+    "cost:check": "tsx scripts/check-costs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
