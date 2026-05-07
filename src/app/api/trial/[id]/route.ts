@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, shouldUseMockDb } from "@/lib/db";
 import { trials } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -12,6 +12,16 @@ export async function GET(
   try {
     const { id } = await context.params;
     const decodedId = decodeURIComponent(id);
+    
+    // Use mock data if in mock mode
+    if (shouldUseMockDb()) {
+      const trial = (db as any).queryTrialById?.(decodedId);
+      if (!trial) {
+        return NextResponse.json({ error: "Trial not found" }, { status: 404 });
+      }
+      return NextResponse.json(trial);
+    }
+    
     const [trial] = await db
       .select()
       .from(trials)

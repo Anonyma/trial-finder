@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, shouldUseMockDb } from "@/lib/db";
 import { ingestionRuns, trials } from "@/lib/db/schema";
 import { sql, desc } from "drizzle-orm";
 
@@ -7,6 +7,21 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    // Use mock data if in mock mode
+    if (shouldUseMockDb()) {
+      const mockDb = db as any;
+      const runs = mockDb.queryIngestionRuns?.() || [];
+      const mockTrials = mockDb.queryTrials?.({}) || { trials: [], total: 0 };
+      
+      return NextResponse.json({
+        totalTrials: mockTrials.total || 5,
+        classifiedTrials: mockTrials.total || 5,
+        pendingClassification: 0,
+        recentRuns: runs,
+        mockMode: true,
+      });
+    }
+
     const runs = await db
       .select()
       .from(ingestionRuns)
