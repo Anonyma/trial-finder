@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -7,28 +9,25 @@ import { SearchBar } from "@/components/search-bar";
 import { FilterPanel } from "@/components/filter-panel";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
 
-// Static generation for deployment without a server
-export const dynamic = "force-static";
-
-// SearchBar uses useSearchParams() which needs Suspense in static export
+// Wrapper components that provide Suspense boundaries
+// Required for useSearchParams() to work with static export
 function SearchBarWrapper() {
   return (
-    <Suspense fallback={<div className="h-12 bg-paper-sunken animate-pulse" />}>
+    <Suspense fallback={<div className="h-12 bg-paper-sunken animate-pulse rounded" />}>
       <SearchBar />
     </Suspense>
   );
 }
 
-// FilterPanel uses useSearchParams() which needs Suspense in static export
 function FilterPanelWrapper() {
   return (
-    <Suspense fallback={<div className="h-64 bg-paper-sunken animate-pulse" />}>
+    <Suspense fallback={<div className="h-64 bg-paper-sunken animate-pulse rounded" />}>
       <FilterPanel />
     </Suspense>
   );
 }
 
-export default async function HomePage() {
+export default function HomePage() {
   // Use mock data directly for static export
   // Client-side search will handle filtering via JavaScript
   const trials = mockTrials.slice(0, 20);
