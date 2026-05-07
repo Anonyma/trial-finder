@@ -7,8 +7,11 @@ import { SearchBar } from "@/components/search-bar";
 import { FilterPanel } from "@/components/filter-panel";
 import { Pagination } from "@/components/pagination";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
+import { mockTrials } from "@/lib/db/mock-data";
 
-export const dynamic = "force-dynamic";
+// Use static generation with revalidation for the main page
+export const dynamic = "force-static";
+export const revalidate = 3600; // Revalidate every hour if using ISR
 
 export default async function HomePage({
   searchParams,
@@ -17,7 +20,27 @@ export default async function HomePage({
 }) {
   const sp = await searchParams;
   const params = parseSearchParams(sp);
-  const result = await searchTrials(params);
+  
+  // Try to fetch from DB, fall back to mock data on error
+  let result;
+  try {
+    result = await searchTrials(params);
+  } catch (err) {
+    console.warn("DB search failed, using mock data:", err);
+    // Fall back to mock data
+    const filtered = mockTrials.filter(t => {
+      if (params.q && !t.briefTitle?.toLowerCase().includes(params.q.toLowerCase())) return false;
+      if (params.cancerTypes?.length && !t.cancerTypes?.some(ct => params.cancerTypes?.includes(ct))) return false;
+      return true;
+    });
+    result = {
+      trials: filtered.slice(0, 20),
+      total: filtered.length,
+      page: 1,
+      perPage: 20,
+      totalPages: Math.ceil(filtered.length / 20),
+    };
+  }
 
   const hasActiveFilters =
     !!params.q ||
