@@ -17,7 +17,9 @@
     "ingest:classify-cheap": "tsx scripts/run-classify-cheap.ts",
     "ingest:classify-cheap-ollama": "tsx scripts/run-classify-cheap.ts --ollama",
     "ingest:classify-unified": "tsx scripts/run-classify-unified.ts",
-    "cost:check": "tsx scripts/check-costs.ts"
+    "cost:check": "tsx scripts/check-costs.ts",
+    "verify:deployment": "node scripts/verify-deployment.js",
+    "verify:deployment:bash": "./scripts/verify-deployment.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -35,7 +37,7 @@
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.36.4",
     "lucide-react": "^0.460.0",
-    "next": "15.0.3",
+    "next": "^15.5.16",
     "p-limit": "^6.1.0",
     "postgres": "^3.4.5",
     "react": "^18.3.1",

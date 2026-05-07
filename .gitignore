@@ -11,3 +11,6 @@ dist
 drizzle/meta
 .tsbuildinfo
 next-env.d.ts
+
+# Local Netlify folder
+.netlify

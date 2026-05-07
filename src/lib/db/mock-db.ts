@@ -58,8 +58,17 @@ class MockQueryBuilder {
     return this;
   }
 
-  orderBy(column: string, direction: 'asc' | 'desc' = 'asc') {
-    this.orderByVal = { column, direction };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  orderBy(...args: any[]) {
+    const first = args[0];
+    if (typeof first === 'string') {
+      this.orderByVal = { column: first, direction: (args[1] as 'asc' | 'desc') || 'asc' };
+    } else if (first && typeof first === 'object') {
+      // Handle desc(col), asc(col), sql`...` — best-effort column extraction
+      const col = first.column?.name ?? first.name ?? first.queryChunks?.[0]?.name ?? 'id';
+      const dir = first.orderingType === 'desc' || first.method === 'desc' ? 'desc' : 'asc';
+      this.orderByVal = { column: col, direction: dir };
+    }
     return this;
   }
 
@@ -116,18 +125,14 @@ class MockQueryBuilder {
       where: (filter: any) => this.where(filter),
       limit: (n: number) => this.limit(n),
       offset: (n: number) => this.offset(n),
-      orderBy: (column: any, direction?: any) => {
-        if (typeof column === 'function') {
-          // Drizzle column reference
-          const colName = column.name || 'id';
-          this.orderByVal = { column: colName, direction: direction || 'asc' };
-        } else if (typeof column === 'object') {
-          // Handle desc() wrapper
-          const entries = Object.entries(column);
-          if (entries.length > 0) {
-            const [key, val] = entries[0];
-            this.orderByVal = { column: key, direction: val === 'desc' ? 'desc' : 'asc' };
-          }
+      orderBy: (...args: any[]) => {
+        const column = args[0];
+        if (typeof column === 'string') {
+          this.orderByVal = { column, direction: args[1] || 'asc' };
+        } else if (column && typeof column === 'object') {
+          const col = column.column?.name ?? column.name ?? column.queryChunks?.[0]?.name ?? 'id';
+          const dir = column.orderingType === 'desc' || column.method === 'desc' ? 'desc' : 'asc';
+          this.orderByVal = { column: col, direction: dir };
         }
         return this;
       },

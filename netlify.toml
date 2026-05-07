@@ -1,0 +1,27 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+  # Auto-enable mock mode for demo deployments without DB
+  NEXT_PUBLIC_USE_MOCK_DB = "true"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production]
+  [context.production.environment]
+    NEXT_PUBLIC_SITE_URL = "https://trial-finder-demo.netlify.app"
+
+[context.deploy-preview]
+  [context.deploy-preview.environment]
+    NEXT_PUBLIC_SITE_URL = "https://deploy-preview--trial-finder-demo.netlify.app"

@@ -31,7 +31,8 @@ const queryClient = useMock
       prepare: false,
     });
 
-export const db = useMock ? mockDb : drizzle(queryClient!, { schema });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const db: any = useMock ? mockDb : drizzle(queryClient!, { schema });
 export { schema };
 export { mockDb, shouldUseMockDb } from "./mock-db";
 export { mockTrials } from "./mock-data";
