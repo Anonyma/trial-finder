@@ -22,15 +22,13 @@
  * cache by (trial_id, user_profile_hash) for subsequent visits.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import { chatCompletion, logUsage } from "@/lib/ai/providers";
 import { db } from "@/lib/db";
 import { trials } from "@/lib/db/schema";
 import { and, or, sql, inArray, lte, gte, isNull, eq } from "drizzle-orm";
 import type { Trial } from "@/lib/db/schema";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const MATCHING_MODEL =
-  process.env.MATCHING_MODEL || "claude-sonnet-4-6";
+const MATCHING_MODEL = process.env.MATCHING_MODEL || "claude-sonnet-4-6";
 
 export interface UserProfile {
   cancerTypeIds: string[]; // from our taxonomy
@@ -139,22 +137,20 @@ async function scoreTrial(
   const trialBlock = formatTrialForScoring(trial);
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await chatCompletion({
       model: MATCHING_MODEL,
-      max_tokens: 800,
-      system: SCORING_SYSTEM_PROMPT,
+      maxTokens: 800,
       messages: [
+        { role: "system", content: SCORING_SYSTEM_PROMPT },
         {
           role: "user",
           content: `USER PROFILE:\n${userBlock}\n\nTRIAL:\n${trialBlock}\n\nRespond with the JSON object only.`,
         },
       ],
     });
+    logUsage(response, "trial-match");
 
-    const text = response.content
-      .filter((b) => b.type === "text")
-      .map((b) => (b as { type: "text"; text: string }).text)
-      .join("");
+    const text = response.content;
 
     const cleaned = text
       .replace(/^```(?:json)?\s*/i, "")
