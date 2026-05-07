@@ -1,35 +1,13 @@
-"use client";
-
 import Link from "next/link";
-import { Suspense } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { mockTrials } from "@/lib/db/mock-data";
 import { TrialCard } from "@/components/trial-card";
-import { SearchBar } from "@/components/search-bar";
-import { FilterPanel } from "@/components/filter-panel";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
 
-// Wrapper components that provide Suspense boundaries
-// Required for useSearchParams() to work with static export
-function SearchBarWrapper() {
-  return (
-    <Suspense fallback={<div className="h-12 bg-paper-sunken animate-pulse rounded" />}>
-      <SearchBar />
-    </Suspense>
-  );
-}
-
-function FilterPanelWrapper() {
-  return (
-    <Suspense fallback={<div className="h-64 bg-paper-sunken animate-pulse rounded" />}>
-      <FilterPanel />
-    </Suspense>
-  );
-}
+// Pure static page - no client components
+export const dynamic = "force-static";
 
 export default function HomePage() {
-  // Use mock data directly for static export
-  // Client-side search will handle filtering via JavaScript
   const trials = mockTrials.slice(0, 20);
   const total = mockTrials.length;
 
@@ -52,7 +30,19 @@ export default function HomePage() {
             summaries written for patients and families.
           </p>
           <div className="space-y-4">
-            <SearchBarWrapper />
+            {/* Simple search form - no client JS needed for initial render */}
+            <form action="/" method="GET" className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
+              <input
+                type="text"
+                name="q"
+                placeholder="Search by drug, mutation, sponsor, or condition…"
+                className="w-full pl-12 pr-12 py-3.5 text-base bg-paper-raised"
+              />
+            </form>
             <div className="flex items-center gap-2">
               <Sparkles size={14} className="text-accent" />
               <Link
@@ -70,7 +60,27 @@ export default function HomePage() {
       {/* Results */}
       <section className="container py-10">
         <div className="grid lg:grid-cols-[260px_1fr] gap-12">
-          <FilterPanelWrapper />
+          {/* Static filter panel */}
+          <aside className="space-y-1">
+            <h3 className="text-xs uppercase tracking-[0.15em] text-ink-subtle font-medium mb-4">
+              Filters
+            </h3>
+            <div className="border-b border-rule py-3">
+              <div className="font-display text-base">Cancer type</div>
+            </div>
+            <div className="border-b border-rule py-3">
+              <div className="font-display text-base">Treatment type</div>
+            </div>
+            <div className="border-b border-rule py-3">
+              <div className="font-display text-base">Status</div>
+            </div>
+            <div className="border-b border-rule py-3">
+              <div className="font-display text-base">Phase</div>
+            </div>
+            <div className="border-b border-rule py-3">
+              <div className="font-display text-base">Country</div>
+            </div>
+          </aside>
 
           <div>
             <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-rule">
