@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { mockTrials } from "@/lib/db/mock-data";
 import { TrialCard } from "@/components/trial-card";
@@ -8,6 +9,24 @@ import { DisclaimerBanner } from "@/components/disclaimer-banner";
 
 // Static generation for deployment without a server
 export const dynamic = "force-static";
+
+// SearchBar uses useSearchParams() which needs Suspense in static export
+function SearchBarWrapper() {
+  return (
+    <Suspense fallback={<div className="h-12 bg-paper-sunken animate-pulse" />}>
+      <SearchBar />
+    </Suspense>
+  );
+}
+
+// FilterPanel uses useSearchParams() which needs Suspense in static export
+function FilterPanelWrapper() {
+  return (
+    <Suspense fallback={<div className="h-64 bg-paper-sunken animate-pulse" />}>
+      <FilterPanel />
+    </Suspense>
+  );
+}
 
 export default async function HomePage() {
   // Use mock data directly for static export
@@ -34,7 +53,7 @@ export default async function HomePage() {
             summaries written for patients and families.
           </p>
           <div className="space-y-4">
-            <SearchBar />
+            <SearchBarWrapper />
             <div className="flex items-center gap-2">
               <Sparkles size={14} className="text-accent" />
               <Link
@@ -52,7 +71,7 @@ export default async function HomePage() {
       {/* Results */}
       <section className="container py-10">
         <div className="grid lg:grid-cols-[260px_1fr] gap-12">
-          <FilterPanel />
+          <FilterPanelWrapper />
 
           <div>
             <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-rule">
