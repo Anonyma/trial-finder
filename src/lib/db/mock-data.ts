@@ -1,11 +1,46 @@
 /**
  * Mock data for local development without database.
- * This allows running the UI and testing features without Supabase.
+ * Prefers the real-trial cache (src/lib/db/trials-cache.json) fetched from
+ * ClinicalTrials.gov. Falls back to 5 hardcoded demo trials if the cache
+ * file is absent. Regenerate the cache with:
+ *   npx tsx scripts/fetch-trials-cache.ts
  */
 
 import type { Trial } from "./schema";
 
-export const mockTrials: Trial[] = [
+// Load real trial cache if available
+let _realTrials: Trial[] = [];
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const cache = require("./trials-cache.json") as {
+    trials: Array<Record<string, unknown>>;
+  };
+  _realTrials = cache.trials.map((t) => ({
+    ...t,
+    // Coerce date strings to Date objects where schema expects timestamps
+    sourceLastUpdated: t.lastUpdated ? new Date(t.lastUpdated as string) : null,
+    ingestedAt: new Date(),
+    lastClassifiedAt: null,
+    classificationVersion: 0,
+    rawData: null,
+    primaryOutcomes: null,
+    secondaryOutcomes: null,
+    centralContacts: (t.contacts as Array<Record<string, unknown>> | undefined) ?? null,
+    // Ensure arrays are never undefined
+    crossReferenceIds: (t.crossReferenceIds as string[]) ?? [],
+    conditions: (t.conditions as string[]) ?? [],
+    cancerTypes: (t.cancerTypes as string[]) ?? [],
+    modalities: (t.modalities as string[]) ?? [],
+    collaborators: (t.collaborators as string[]) ?? [],
+    countries: (t.countries as string[]) ?? [],
+    interventions: (t.interventions as Trial["interventions"]) ?? null,
+    locations: (t.locations as Trial["locations"]) ?? null,
+  })) as unknown as Trial[];
+} catch {
+  // Cache not generated yet — will fall through to hardcoded demos
+}
+
+export const mockTrials: Trial[] = _realTrials.length > 0 ? _realTrials : [
   {
     id: "NCT05123456",
     source: "clinicaltrials_gov",
@@ -314,9 +349,10 @@ Exclusion Criteria:
   }
 ];
 
-// Ingestion runs mock data
+// Ingestion runs mock data (reflects real cache size when available)
+const _trialCount = _realTrials.length || 5;
 export const mockIngestionRuns = [
-  { id: 1, source: "clinicaltrials_gov", startedAt: new Date("2025-04-16T06:00:00Z"), completedAt: new Date("2025-04-16T06:45:00Z"), status: "succeeded", trialsSeen: 1247, trialsInserted: 23, trialsUpdated: 89, errorMessage: null, metadata: { totalFromSource: 1247, oncologyCount: 1247 } },
+  { id: 1, source: "clinicaltrials_gov", startedAt: new Date("2025-04-16T06:00:00Z"), completedAt: new Date("2025-04-16T06:45:00Z"), status: "succeeded", trialsSeen: _trialCount, trialsInserted: _trialCount, trialsUpdated: 0, errorMessage: null, metadata: { totalFromSource: _trialCount, oncologyCount: _trialCount } },
   { id: 2, source: "clinicaltrials_gov", startedAt: new Date("2025-04-15T06:00:00Z"), completedAt: new Date("2025-04-15T06:42:00Z"), status: "succeeded", trialsSeen: 1224, trialsInserted: 18, trialsUpdated: 76, errorMessage: null, metadata: { totalFromSource: 1224, oncologyCount: 1224 } }
 ];
 
