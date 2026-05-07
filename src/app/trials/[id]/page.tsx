@@ -8,8 +8,17 @@ import { formatDate, formatPhase, formatStatus } from "@/lib/utils";
 import { getCancerType } from "@/lib/taxonomy/cancer-types";
 import { getModality } from "@/lib/taxonomy/modalities";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
+import { mockTrials } from "@/lib/db/mock-data";
 
-export const dynamic = "force-dynamic";
+// Static generation for deployment without a server
+export const dynamic = "force-static";
+
+// Pre-render all mock trial pages at build time
+export function generateStaticParams() {
+  return mockTrials.map((trial) => ({
+    id: trial.id,
+  }));
+}
 
 export default async function TrialDetailPage({
   params,
@@ -18,11 +27,20 @@ export default async function TrialDetailPage({
 }) {
   const { id } = await params;
   const decodedId = decodeURIComponent(id);
-  const [trial] = await db
-    .select()
-    .from(trials)
-    .where(eq(trials.id, decodedId))
-    .limit(1);
+  
+  // Try database first, fall back to mock data
+  let trial;
+  try {
+    const result = await db
+      .select()
+      .from(trials)
+      .where(eq(trials.id, decodedId))
+      .limit(1);
+    trial = result[0];
+  } catch {
+    // DB failed, use mock data
+    trial = mockTrials.find((t) => t.id === decodedId);
+  }
 
   if (!trial) notFound();
 
