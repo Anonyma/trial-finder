@@ -8,30 +8,14 @@
   # Auto-enable mock mode for demo deployments without DB
   NEXT_PUBLIC_USE_MOCK_DB = "true"
 
+# Don't redirect API routes - they return 404
 [[redirects]]
   from = "/api/*"
   to = "/404.html"
   status = 404
 
-[[redirects]]
-  from = "/_next/*"
-  to = "/_next/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.html"
-  to = "/:1.html"
-  status = 200
-
-[[redirects]]
-  from = "/trials/*"
-  to = "/trials/[id].html"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# All other pages are statically generated - no SPA fallback needed
+# The static files are served directly
 
 [context.production]
   [context.production.environment]
